@@ -1,36 +1,25 @@
-# Metronome Android APK
+# Métronome HTML (utilisable partout)
 
-Ce projet Android (Kotlin) crée une application de métronome simple:
+Ce dépôt contient maintenant une version **HTML/CSS/JavaScript** du métronome, simple à utiliser sur n’importe quel appareil avec un navigateur.
 
-- Bouton **Démarrer / Arrêter**
-- Réglage du **temps entre chaque coup** en millisecondes (150 ms à 2000 ms)
-- Affichage de l'équivalent en **BPM**
+## Utilisation rapide
 
-## Compiler l'APK en local
+1. Ouvre `index.html` dans ton navigateur (PC ou mobile).
+2. Clique sur **Démarrer**.
+3. Ajuste le **temps entre chaque coup** avec le curseur (150 ms à 2000 ms).
 
-1. Installer Android Studio (ou Android SDK + JDK 17)
-2. Ouvrir ce dossier comme projet Gradle
-3. Lancer la tâche:
+## Fonctionnalités
 
-```bash
-gradle :app:assembleDebug
-```
+- Réglage du temps entre les coups en millisecondes
+- Affichage automatique de l’équivalent en BPM
+- Bouton Démarrer / Arrêter
+- Indicateur visuel à chaque battement
+- Aucun framework requis (fichier unique)
 
-L'APK généré se trouve ensuite ici:
+## Hébergement
 
-```text
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-## Générer un APK installable automatiquement (GitHub Actions)
-
-Le workflow `.github/workflows/build-apk.yml` compile l'application et publie l'APK en artifact téléchargeable.
-
-1. Pousser le dépôt sur GitHub.
-2. Aller dans **Actions** > **Build Android APK**.
-3. Lancer **Run workflow** (ou pousser une branche).
-4. Télécharger l'artifact `app-debug-apk`.
-
-## Pourquoi je ne peux pas te livrer directement l'APK depuis cet environnement
-
-Dans cet environnement d'exécution, l'accès au dépôt Maven Google est bloqué (HTTP 403), ce qui empêche de récupérer le plugin Android Gradle nécessaire à la compilation.
+Tu peux l’utiliser localement ou le publier sur n’importe quel hébergeur statique:
+- GitHub Pages
+- Netlify
+- Vercel (statique)
+- Serveur web simple

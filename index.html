@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Métronome HTML</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      background: #10131a;
+      color: #f1f3f8;
+    }
+    .card {
+      width: min(520px, 92vw);
+      background: #1a1f2b;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    h1 { margin-top: 0; }
+    .row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+    .value { font-weight: 700; font-size: 1.2rem; }
+    input[type="range"] { width: 100%; margin: 16px 0 8px; }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      background: #5b8cff;
+      color: white;
+      margin-top: 16px;
+    }
+    .pulse {
+      margin-top: 18px;
+      height: 14px;
+      border-radius: 999px;
+      background: #2a3345;
+      overflow: hidden;
+    }
+    .pulse > div {
+      width: 0%;
+      height: 100%;
+      background: #45e0a7;
+      transition: width 80ms linear;
+    }
+    .hint { font-size: .9rem; opacity: .8; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Métronome (HTML)</h1>
+
+    <div class="row">
+      <span>Temps entre chaque coup</span>
+      <span class="value" id="intervalText">500 ms</span>
+    </div>
+
+    <input id="interval" type="range" min="150" max="2000" step="10" value="500" />
+
+    <div class="row">
+      <span>BPM</span>
+      <span class="value" id="bpmText">120.0</span>
+    </div>
+
+    <button id="toggleBtn">Démarrer</button>
+
+    <div class="pulse"><div id="pulseBar"></div></div>
+    <p class="hint">Fonctionne sur PC et mobile, sans installation: ouvre juste ce fichier HTML dans un navigateur.</p>
+  </main>
+
+  <script>
+    const intervalInput = document.getElementById('interval');
+    const intervalText = document.getElementById('intervalText');
+    const bpmText = document.getElementById('bpmText');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const pulseBar = document.getElementById('pulseBar');
+
+    let isRunning = false;
+    let timerId = null;
+    let audioCtx = null;
+
+    function getIntervalMs() {
+      return Number(intervalInput.value);
+    }
+
+    function updateDisplay() {
+      const interval = getIntervalMs();
+      intervalText.textContent = `${interval} ms`;
+      bpmText.textContent = (60000 / interval).toFixed(1);
+    }
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function clickSound() {
+      ensureAudioContext();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1200, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.07);
+    }
+
+    function flashPulse() {
+      pulseBar.style.transition = 'none';
+      pulseBar.style.width = '100%';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          pulseBar.style.transition = `width ${Math.max(getIntervalMs() - 30, 100)}ms linear`;
+          pulseBar.style.width = '0%';
+        });
+      });
+    }
+
+    function tick() {
+      clickSound();
+      flashPulse();
+    }
+
+    function schedule() {
+      if (!isRunning) return;
+      tick();
+      timerId = setTimeout(schedule, getIntervalMs());
+    }
+
+    function start() {
+      isRunning = true;
+      toggleBtn.textContent = 'Arrêter';
+      schedule();
+    }
+
+    function stop() {
+      isRunning = false;
+      toggleBtn.textContent = 'Démarrer';
+      clearTimeout(timerId);
+      timerId = null;
+      pulseBar.style.transition = 'none';
+      pulseBar.style.width = '0%';
+    }
+
+    toggleBtn.addEventListener('click', async () => {
+      if (isRunning) {
+        stop();
+      } else {
+        ensureAudioContext();
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+        start();
+      }
+    });
+
+    intervalInput.addEventListener('input', () => {
+      updateDisplay();
+      if (isRunning) {
+        clearTimeout(timerId);
+        timerId = setTimeout(schedule, 0);
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
